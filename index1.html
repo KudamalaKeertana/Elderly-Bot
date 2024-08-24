@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HEART DISEASE PREDICTION</title>
+</head>
+<body>
+    <h1 style="text-align:center;">HEART DISEASE PREDICTION</h1>
+    <form action="/heart" method="post">
+        Age: <input type="number" name="age" required><br><br>
+        Sex: <select name="sex" required>
+            <option value="0">Female</option>
+            <option value="1">Male</option>
+        </select><br><br>
+        Chest Pain: <select name="cp" required>
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+        </select><br><br>
+        Blood Pressure: <input type="number" name="trestbps" required><br><br>
+        Cholesterol: <input type="number" name="chol" required><br><br>
+        Blood Sugar Level: <select name="fbs" required>
+            <option value="0">&lt;120mg/dl</option>
+            <option value="1">&gt;120mg/dl</option>
+        </select><br><br>
+        ECG Value: <select name="restecg" required>
+            <option value="0">Normal</option>
+            <option value="1">ST-T wave abnormality</option>
+            <option value="2">Probable or definite left ventricular hypertrophy by Estes' criteria</option>
+        </select><br><br>
+        Max Heart Rate: <input type="number" name="thalach" required><br><br>
+        Exercise-Induced Angina: <select name="exang" required>
+            <option value="0">No Pain</option>
+            <option value="1">Pain</option>
+        </select><br><br>
+        Vessels Colored: <select name="ca" required>
+            <option value="0">No Vessels</option>
+            <option value="1">One Vessel</option>
+            <option value="2">Two Vessels</option>
+            <option value="3">Three Vessels</option>
+        </select><br><br>
+        Thalassemia: <select name="thal" required>
+            <option value="0">Normal</option>
+            <option value="1">Fixed Defect</option>
+            <option value="2">Reversible Defect</option>
+        </select><br><br>
+        oldpeak: <input type="number" name="oldpeak" required><br><br>
+        slope: <input type="number" name="slope" required><br><br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>

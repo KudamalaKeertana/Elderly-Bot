@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.3/socket.io.js"></script>
+    <style>
+        #startRecording {
+            position: absolute;
+            top: 10px;
+            right: 80px;
+        }
+        #heartPredictionButton, #medicines {
+            background-color: #2eda56;
+            color: white;
+            padding: 10px 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            outline: none;
+        }
+        #submit-button
+        {
+            background-color: #39048a;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            position: absolute;
+            outline: none;
+            left: 65%;
+        }
+        #heartPredictionButton, #medicines {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+        #medicines {
+            top: 50px;
+        }
+        .vertical-line {
+            border-left: 2px solid #121212;
+            height: 500px;
+            position: absolute;
+            top: 0;
+            left: 170px; /* Adjust as needed */
+        }
+        #chat-form {
+            position: relative;
+            margin-left: 200px; /* Adjust as needed */
+            margin-top: 20px; /* Add some space */
+        }
+        #textOutput {
+            margin-left: 200px; /* Adjust as needed */
+            margin-top: 20px; /* Add some space */
+        }
+        #textOutputContent {
+            width: 90%;
+            border: 4px solid #131212;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+        }
+        #clear-button {
+            background-color: #39048a;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            outline: none;
+            position: absolute;
+            top: 560px;
+            left: 45%;
+        }
+    </style>
+</head>
+<body>
+    <button type="button" id="medicines" onclick="window.location.href='/medicines'">Show Medicines</button>
+    <button type="button" id="heartPredictionButton">Click to get Heart Disease Prediction</button>
+    <div class="vertical-line"></div>
+
+    <form id="chat-form">
+        <div id="textinput" style="text-align: center; position: relative;">
+            <button id="startRecording"><img src="https://i.ibb.co/3MMy0JK/mic.png" width="20px" height="20px" alt="Speak to chat with AI"></button>
+            <textarea id="user_input" rows="5" style="width: 90%; border: 4px solid #121212; padding: 5px;margin: 0 auto; background-color: transparent;" placeholder="Message Elderlybot..."></textarea><br>
+        </div>
+        <button type="button" id="submit-button">Submit</button>
+    </form>
+
+    <div id="audioContainer" style="width: 0%;"></div>
+    <div id="textOutput" style="width: 100%; display: flex; justify-content: center;">
+        <div id="textOutputContent"></div>
+    </div>
+
+    <br>
+    <button id="clear-button">Clear</button>
+    <script>
+        var startRecordingButton = document.getElementById("startRecording");
+        var audioContainer = document.getElementById("audioContainer");
+        var lastMessageTime = Date.now(); 
+
+        var recognition = new webkitSpeechRecognition();
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        recognition.lang = 'en-US';
+
+        recognition.onresult = function(event) {
+            var speechToText = event.results[0][0].transcript;
+            console.log("Speech to Text:", speechToText);
+
+            socket.emit('voice_input', { text_input: speechToText });
+        };
+
+        recognition.onend = function() {
+            startRecordingButton.disabled = false;
+            startRecordingButton.innerHTML = "<img src='https://i.ibb.co/3MMy0JK/mic.png' width='20px' height='20px' alt='Speak to chat with AI'>";
+        }
+
+        startRecordingButton.addEventListener("click", function() {
+            recognition.start();
+            startRecordingButton.disabled = true;
+            startRecordingButton.innerHTML = "Listening...";
+        });
+
+        document.getElementById("submit-button").addEventListener("click", function() {
+            var userInput = document.getElementById("user_input").value;
+
+            socket.emit('voice_input', { text_input: userInput });
+
+            document.getElementById("user_input").value = "";
+        });
+
+        document.getElementById("clear-button").addEventListener("click", function() {
+            var textOutputContent = document.getElementById("textOutputContent");
+            textOutputContent.innerHTML = '';
+            audioContainer.innerHTML = '';
+        
+            document.getElementById("user_input").value = "";
+        
+            // Redirect to /main after clearing if 'medicines' are shown
+            if (window.location.pathname === '/medicines') {
+                window.location.href = "/clear-after-medicines";
+            }
+        
+            socket.emit('clear');
+        });
+        
+
+        function updateTextOutput(content) {
+            var textOutputContent = document.getElementById("textOutputContent");
+            textOutputContent.innerHTML = content;
+            lastMessageTime = Date.now(); 
+        }
+
+        socket.on('text_output', function (data) {
+            updateTextOutput(data.content);
+        });
+
+        socket.on('clear', function () {
+            var textOutputContent = document.getElementById("textOutputContent");
+            textOutputContent.innerHTML = '';
+            audioContainer.innerHTML = '';
+        });
+
+        setInterval(function() {
+            if (Date.now() - lastMessageTime > 60000) {
+                var textOutputContent = document.getElementById("textOutputContent");
+                textOutputContent.innerHTML = '';
+                audioContainer.innerHTML = '';
+            }
+        });
+        var heartPredictionButton = document.getElementById("heartPredictionButton");
+        heartPredictionButton.addEventListener("click", function() {
+            window.location.href = "/heart_prediction";
+        });
+        function updateTextOutput(content) {
+            var textOutputContent = document.getElementById("textOutputContent");
+            textOutputContent.innerHTML = content;
+        }
+        // Assuming you receive the medicines data from Flask in the `medicines` variable
+        var medicines = "{{ medicines | safe }}"; // Use safe filter to prevent XSS attacks
+        
+        // Call the function to display medicines after page load
+        if (medicines) {
+            showMedicines(medicines);
+        }
+    </script>
+</body>
+</html>
